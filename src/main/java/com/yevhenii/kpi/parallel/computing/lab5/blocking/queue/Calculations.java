@@ -1,12 +1,13 @@
 package com.yevhenii.kpi.parallel.computing.lab5.blocking.queue;
 
 import com.yevhenii.kpi.parallel.computing.models.Data;
+import com.yevhenii.kpi.parallel.computing.models.Matrix;
 import com.yevhenii.kpi.parallel.computing.models.ResultData;
+import com.yevhenii.kpi.parallel.computing.models.Vector;
 import com.yevhenii.kpi.parallel.computing.profiling.Profilers;
 import com.yevhenii.kpi.parallel.computing.utils.Generator;
 import com.yevhenii.kpi.parallel.computing.utils.JsonUtils;
 
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -14,13 +15,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
 
-import static com.yevhenii.kpi.parallel.computing.utils.Functions.*;
-import static com.yevhenii.kpi.parallel.computing.utils.Functions.min;
-import static com.yevhenii.kpi.parallel.computing.utils.Functions.substructMatrices;
 
 public class Calculations {
     private final Data data;
-    private final BlockingQueue<List<Double>> queue = new ArrayBlockingQueue<>(2);
+    private final BlockingQueue<Vector> queue = new ArrayBlockingQueue<>(2);
 
     public Calculations(Generator generator) {
         this.data = JsonUtils.readInputData()
@@ -39,16 +37,16 @@ public class Calculations {
         return data;
     }
 
-    private CompletableFuture<List<Double>> first() {
-        Supplier<List<Double>> res = Profilers.profile(
+    private CompletableFuture<Vector> first() {
+        Supplier<Vector> res = Profilers.profile(
                 "А = В*МС + D*MZ + E*MM",
                 () -> {
-                    List<Double> BMC = multiply(data.B, data.MC);
-                    List<Double> EMM = multiply(data.E, data.MM);
-                    List<Double> sum = sumVectors(BMC, EMM);
+                    Vector BMC = data.B.multiply(data.MC);
+                    Vector EMM = data.E.multiply(data.MM);
+                    Vector sum = BMC.add(EMM);
                     try {
-                        List<Double> DMZ = multiply(queue.take(), data.MZ);
-                        return sumVectors(DMZ, sum);
+                        Vector DMZ = queue.take().multiply(data.MZ);
+                        return DMZ.add(sum);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                         throw new RuntimeException(e);
@@ -59,13 +57,13 @@ public class Calculations {
         return CompletableFuture.supplyAsync(res);
     }
 
-    private CompletableFuture<List<Double>> second() {
-        Supplier<List<Double>> res = Profilers.profile(
+    private CompletableFuture<Vector> second() {
+        Supplier<Vector> res = Profilers.profile(
                 "D = В*МZ - E*MM*a",
                 () -> {
-                    List<Double> BMZ = multiply(data.B, data.MZ);
-                    List<Double> EMMA = multiplyByNum(multiply(data.E, data.MM), data.a);
-                    List<Double> D = substructVectors(BMZ, EMMA);
+                    Vector BMZ = data.B.multiply(data.MZ);
+                    Vector EMMA = data.E.multiply(data.MM).multiply(data.a);
+                    Vector D = BMZ.substruct(EMMA);
                     queue.add(D);
                     queue.add(D);
                     return D;
@@ -75,30 +73,30 @@ public class Calculations {
         return CompletableFuture.supplyAsync(res);
     }
 
-    private CompletableFuture<List<List<Double>>> third() {
-        Supplier<List<List<Double>>> res = Profilers.profile(
+    private CompletableFuture<Matrix> third() {
+        Supplier<Matrix> res = Profilers.profile(
                 "MА = MD*(MT + MZ) - ME*MM",
                 () -> {
-                    List<List<Double>> MTMZ = sumMatrices(data.MT, data.MZ);
-                    List<List<Double>> MDMTMZ = multiplyMatrices(data.MD, MTMZ);
-                    List<List<Double>> MEMM = multiplyMatrices(data.ME, data.MM);
-                    return substructMatrices(MDMTMZ, MEMM);
+                    Matrix MTMZ = data.MT.add(data.MZ);
+                    Matrix MDMTMZ = data.MD.multiply(MTMZ);
+                    Matrix MEMM = data.ME.multiply(data.MM);
+                    return MDMTMZ.substruct(MEMM);
                 }
         );
 
         return CompletableFuture.supplyAsync(res);
     }
 
-    private CompletableFuture<List<List<Double>>> fourth() {
-        Supplier<List<List<Double>>> res = Profilers.profile(
+    private CompletableFuture<Matrix> fourth() {
+        Supplier<Matrix> res = Profilers.profile(
                 "MG = min(D + C)*MD*MT - MZ*ME",
                 () -> {
-                    List<List<Double>> MZME = multiplyMatrices(data.MZ, data.ME);
-                    List<List<Double>> MDMT = multiplyMatrices(data.MD, data.MT);
+                    Matrix MZME = data.MZ.multiply(data.ME);
+                    Matrix MDMT = data.MD.multiply(data.MT);
                     try {
-                        List<Double> DC = sumVectors(queue.take(), data.C);
-                        List<List<Double>> MDMTDC = multiplyMatrixByNum(MDMT, min(DC));
-                        return substructMatrices(MDMTDC, MZME);
+                        Vector DC = queue.take().add(data.C);
+                        Matrix MDMTDC = MDMT.multiply(DC.min());
+                        return MDMTDC.substruct(MZME);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                         throw new RuntimeException(e);
@@ -110,10 +108,10 @@ public class Calculations {
     }
 
     public Future<ResultData> start() {
-        CompletableFuture<List<Double>> A = first();
-        CompletableFuture<List<Double>> D = second();
-        CompletableFuture<List<List<Double>>> MA = third();
-        CompletableFuture<List<List<Double>>> MG = fourth();
+        CompletableFuture<Vector> A = first();
+        CompletableFuture<Vector> D = second();
+        CompletableFuture<Matrix> MA = third();
+        CompletableFuture<Matrix> MG = fourth();
 
         return CompletableFuture.completedFuture(new ResultData())
                 .thenCompose(data -> D.thenApply(data::setD))

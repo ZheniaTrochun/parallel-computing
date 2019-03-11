@@ -1,5 +1,8 @@
 package com.yevhenii.kpi.parallel.computing.utils;
 
+import com.yevhenii.kpi.parallel.computing.models.Matrix;
+import com.yevhenii.kpi.parallel.computing.models.Vector;
+
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
@@ -18,11 +21,12 @@ public interface Generator {
         return vector;
     }
 
-    default List<Double> getVector(int size) {
-        return DoubleStream.iterate(getDouble(), i -> getDouble())
-                .limit(size)
-                .boxed()
-                .collect(Collectors.toList());
+    default Vector getVector(int size) {
+        return new Vector(
+                DoubleStream.iterate(getDouble(), i -> getDouble())
+                        .limit(size)
+                        .toArray()
+        );
     }
 
     default double[][] getRawMatrix(int size) {
@@ -38,11 +42,7 @@ public interface Generator {
         return matrix;
     }
 
-    default List<List<Double>> getMatrix(int size) {
-        return DoubleStream.iterate(getDouble(), i -> getDouble())
-                .boxed()
-                .limit(size)
-                .map(row -> getVector(size))
-                .collect(Collectors.toList());
+    default Matrix getMatrix(int size) {
+        return new Matrix(getRawMatrix(size));
     }
 }

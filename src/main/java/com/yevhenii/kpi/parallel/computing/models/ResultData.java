@@ -1,56 +1,55 @@
 package com.yevhenii.kpi.parallel.computing.models;
 
-import java.util.List;
 import java.util.Objects;
 
 public class ResultData {
-    private List<Double> D;
-    private List<Double> A;
-    private List<List<Double>> MA;
-    private List<List<Double>> MG;
+    private Vector D;
+    private Vector A;
+    private Matrix MA;
+    private Matrix MG;
 
     public ResultData() {
     }
 
-    public ResultData(List<Double> D, List<Double> A, List<List<Double>> MA, List<List<Double>> MG) {
+    public ResultData(Vector D, Vector A, Matrix MA, Matrix MG) {
         D = D;
         A = A;
         this.MA = MA;
         this.MG = MG;
     }
 
-    public List<Double> getD() {
+    public Vector getD() {
         return D;
     }
 
-    public ResultData setD(List<Double> d) {
+    public ResultData setD(Vector d) {
         D = d;
         return this;
     }
 
-    public List<Double> getA() {
+    public Vector getA() {
         return A;
     }
 
-    public ResultData setA(List<Double> a) {
+    public ResultData setA(Vector a) {
         A = a;
         return this;
     }
 
-    public List<List<Double>> getMA() {
+    public Matrix getMA() {
         return MA;
     }
 
-    public ResultData setMA(List<List<Double>> MA) {
+    public ResultData setMA(Matrix MA) {
         this.MA = MA;
         return this;
     }
 
-    public List<List<Double>> getMG() {
+    public Matrix getMG() {
         return MG;
     }
 
-    public ResultData setMG(List<List<Double>> MG) {
+    public ResultData setMG(Matrix MG) {
         this.MG = MG;
         return this;
     }

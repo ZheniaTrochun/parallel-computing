@@ -2,22 +2,21 @@ package com.yevhenii.kpi.parallel.computing.models;
 
 import com.yevhenii.kpi.parallel.computing.utils.Generator;
 
-import java.util.List;
 import java.util.Objects;
 
 public class Data {
     private static final int SIZE = 1000;
 
-    public List<Double> B;
-    public List<Double> C;
-    public List<Double> E;
+    public Vector B;
+    public Vector C;
+    public Vector E;
 
-    public List<List<Double>> MC;
-    public List<List<Double>> MZ;
-    public List<List<Double>> MM;
-    public List<List<Double>> MD;
-    public List<List<Double>> MT;
-    public List<List<Double>> ME;
+    public Matrix MC;
+    public Matrix MZ;
+    public Matrix MM;
+    public Matrix MD;
+    public Matrix MT;
+    public Matrix ME;
 
     public double a;
 
@@ -43,75 +42,75 @@ public class Data {
         return SIZE;
     }
 
-    public List<Double> getB() {
+    public Vector getB() {
         return B;
     }
 
-    public void setB(List<Double> b) {
+    public void setB(Vector b) {
         B = b;
     }
 
-    public List<Double> getC() {
+    public Vector getC() {
         return C;
     }
 
-    public void setC(List<Double> c) {
+    public void setC(Vector c) {
         C = c;
     }
 
-    public List<Double> getE() {
+    public Vector getE() {
         return E;
     }
 
-    public void setE(List<Double> e) {
+    public void setE(Vector e) {
         E = e;
     }
 
-    public List<List<Double>> getMC() {
+    public Matrix getMC() {
         return MC;
     }
 
-    public void setMC(List<List<Double>> MC) {
+    public void setMC(Matrix MC) {
         this.MC = MC;
     }
 
-    public List<List<Double>> getMZ() {
+    public Matrix getMZ() {
         return MZ;
     }
 
-    public void setMZ(List<List<Double>> MZ) {
+    public void setMZ(Matrix MZ) {
         this.MZ = MZ;
     }
 
-    public List<List<Double>> getMM() {
+    public Matrix getMM() {
         return MM;
     }
 
-    public void setMM(List<List<Double>> MM) {
+    public void setMM(Matrix MM) {
         this.MM = MM;
     }
 
-    public List<List<Double>> getMD() {
+    public Matrix getMD() {
         return MD;
     }
 
-    public void setMD(List<List<Double>> MD) {
+    public void setMD(Matrix MD) {
         this.MD = MD;
     }
 
-    public List<List<Double>> getMT() {
+    public Matrix getMT() {
         return MT;
     }
 
-    public void setMT(List<List<Double>> MT) {
+    public void setMT(Matrix MT) {
         this.MT = MT;
     }
 
-    public List<List<Double>> getME() {
+    public Matrix getME() {
         return ME;
     }
 
-    public void setME(List<List<Double>> ME) {
+    public void setME(Matrix ME) {
         this.ME = ME;
     }
 
