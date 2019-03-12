@@ -2,47 +2,41 @@ package com.yevhenii.kpi.parallel.computing.lab1.threads;
 
 import com.yevhenii.kpi.parallel.computing.models.ResultData;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
 public class ThreadHolder {
-    private Thread first;
-    private Thread second;
-    private Thread third;
-    private Thread fourth;
+
+    private final List<Thread> threads;
 
     private ResultData resultData;
 
-    public ThreadHolder(ResultData resultData) {
+    public ThreadHolder(List<Thread> threads, ResultData resultData) {
+        this.threads = threads;
         this.resultData = resultData;
     }
 
-    public ThreadHolder startFirst(Runnable calculations) {
-        first = new Thread(calculations);
-        first.start();
-        return this;
+    public ThreadHolder(ResultData resultData) {
+        this.threads = new ArrayList<>();
+        this.resultData = resultData;
     }
 
-    public ThreadHolder startSecond(Runnable calculations) {
-        second = new Thread(calculations);
-        second.start();
-        return this;
+    public ThreadHolder start(Runnable calculations) {
+        Thread thread = new Thread(calculations);
+        thread.start();
+
+        List<Thread> updatedThreads = new LinkedList<>(threads);
+        updatedThreads.add(thread);
+
+        return new ThreadHolder(updatedThreads, resultData);
     }
 
-    public ThreadHolder startThird(Runnable calculations) {
-        third = new Thread(calculations);
-        third.start();
-        return this;
-    }
-
-    public ThreadHolder startFourth(Runnable calculations) {
-        fourth = new Thread(calculations);
-        fourth.start();
-        return this;
-    }
 
     public ResultData joinAll() throws InterruptedException {
-        first.join();
-        second.join();
-        third.join();
-        fourth.join();
+        for (Thread thread : threads) {
+            thread.join();
+        }
 
         return resultData;
     }

@@ -3,16 +3,23 @@ package com.yevhenii.kpi.parallel.computing.utils;
 import com.yevhenii.kpi.parallel.computing.models.Matrix;
 import com.yevhenii.kpi.parallel.computing.models.Vector;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Random;
 import java.util.stream.DoubleStream;
 
-@FunctionalInterface
-public interface Generator {
+public class Generator {
+    private final Random rand;
 
-    double getDouble();
+    public Generator(Random rand) {
+        this.rand = rand;
+    }
 
-    default double[] getRawVector(int size) {
+    public double getDouble() {
+        return rand.nextBoolean() ?
+                rand.nextDouble() :
+                rand.nextDouble() * (rand.nextInt(100000) - 100000);
+    }
+
+    public double[] getRawVector(int size) {
         double[] vector = new double[size];
         for (int i = 0; i < size; i++) {
             vector[i] = getDouble();
@@ -21,7 +28,7 @@ public interface Generator {
         return vector;
     }
 
-    default Vector getVector(int size) {
+    public Vector getVector(int size) {
         return new Vector(
                 DoubleStream.iterate(getDouble(), i -> getDouble())
                         .limit(size)
@@ -29,7 +36,7 @@ public interface Generator {
         );
     }
 
-    default double[][] getRawMatrix(int size) {
+    public double[][] getRawMatrix(int size) {
         double[][] matrix = new double[size][];
 
         for (int i = 0; i < matrix.length; i++) {
@@ -42,7 +49,7 @@ public interface Generator {
         return matrix;
     }
 
-    default Matrix getMatrix(int size) {
+    public Matrix getMatrix(int size) {
         return new Matrix(getRawMatrix(size));
     }
 }

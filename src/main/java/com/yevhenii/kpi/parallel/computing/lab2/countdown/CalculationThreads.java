@@ -19,17 +19,21 @@ public class CalculationThreads {
 
     private ResultData resultData = new ResultData();
 
-    private static final CountDownLatch countDownLatch = new CountDownLatch(1);
+    private final CountDownLatch countDownLatch = new CountDownLatch(1);
 
     public CalculationThreads(Generator generator) {
         this.data = JsonUtils.readInputData()
                 .orElseGet(() -> createDataAndWrite(generator));
     }
 
+    public CalculationThreads(Data data) {
+        this.data = data;
+    }
+
     public CalculationThreads() {
         Random rand = new Random();
         this.data = JsonUtils.readInputData()
-                .orElseGet(() -> createDataAndWrite(rand::nextDouble));
+                .orElseGet(() -> createDataAndWrite(new Generator(rand)));
     }
 
     private Data createDataAndWrite(Generator gen) {
@@ -39,27 +43,27 @@ public class CalculationThreads {
     }
 
     private Runnable createFirst() {
-        return fromSupplier(Profilers.profile("А = В*МС + D*MZ + E*MM",
+        return fromSupplier(Profilers.profile("A", // "А = В*МС + D*MZ + E*MM"
                 () -> {
                     Vector BMC = data.B.multiply(data.MC);
                     Vector EMM = data.E.multiply(data.MM);
                     Vector sum = BMC.add(EMM);
                     try {
                         countDownLatch.await();
-                        Vector DMZ = resultData.getD().multiply(data.MZ);
-                        Vector A = DMZ.add(sum);
-                        resultData.setA(A);
-                        return A;
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                         throw new RuntimeException(e);
                     }
+                    Vector DMZ = resultData.getD().multiply(data.MZ);
+                    Vector A = DMZ.add(sum);
+                    resultData.setA(A);
+                    return A;
                 }
         ));
     }
 
     private Runnable createSecond() {
-        return fromSupplier(Profilers.profile("D = В*МZ - E*MM*a",
+        return fromSupplier(Profilers.profile("D", // "D = В*МZ - E*MM*a"
                 () -> {
                     Vector BMZ = data.B.multiply(data.MZ);
                     Vector EMMA = data.E.multiply(data.MM).multiply(data.a);
@@ -72,7 +76,7 @@ public class CalculationThreads {
     }
 
     private Runnable createThird() {
-        return fromSupplier(Profilers.profile("MА = MD*(MT + MZ) - ME*MM",
+        return fromSupplier(Profilers.profile("MА", // "MА = MD*(MT + MZ) - ME*MM"
                 () -> {
                     Matrix MTMZ = data.MT.add(data.MZ);
                     Matrix MDMTMZ = data.MD.multiply(MTMZ);
@@ -85,27 +89,27 @@ public class CalculationThreads {
     }
 
     private Runnable createFourth() {
-        return fromSupplier(Profilers.profile("MG = min(D + C)*MD*MT - MZ*ME",
+        return fromSupplier(Profilers.profile("MG", // "MG = min(D + C)*MD*MT - MZ*ME"
                 () -> {
                     Matrix MZME = data.MZ.multiply(data.ME);
                     Matrix MDMT = data.MD.multiply(data.MT);
                     try {
                         countDownLatch.await();
-                        Vector DC = resultData.getD().add(data.C);
-                        Matrix MDMTDC = MDMT.multiply(DC.min());
-                        Matrix MG = MDMTDC.substruct(MZME);
-                        resultData.setMG(MG);
-                        return MG;
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                         throw new RuntimeException(e);
                     }
+                    Vector DC = resultData.getD().add(data.C);
+                    Matrix MDMTDC = MDMT.multiply(DC.min());
+                    Matrix MG = MDMTDC.substruct(MZME);
+                    resultData.setMG(MG);
+                    return MG;
                 }
         ));
     }
 
     public ThreadHolder start() {
-        return new ThreadHolder(resultData)
+        return new ThreadHolder(threads, resultData)
                 .startFirst(createFirst())
                 .startSecond(createSecond())
                 .startThird(createThird())

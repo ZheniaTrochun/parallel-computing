@@ -1,0 +1,62 @@
+[
+  {
+    "tag": "threads",
+    "runs": 10,
+    "statistics": {
+      "A": 15.2,
+      "MА": 1675.4,
+      "D": 8.6,
+      "MG": 1664.6
+    }
+  },
+  {
+    "tag": "countdown",
+    "runs": 10,
+    "statistics": {
+      "A": 17.7,
+      "MА": 1702.5,
+      "D": 6.9,
+      "MG": 1696.5
+    }
+  },
+  {
+    "tag": "executor",
+    "runs": 10,
+    "statistics": {
+      "А": 18.1,
+      "MА": 1690.5,
+      "D": 7.0,
+      "MG": 1643.125
+    }
+  },
+  {
+    "tag": "future",
+    "runs": 10,
+    "statistics": {
+      "A": 12.9,
+      "MА": 1809.7,
+      "D": 9.9,
+      "MG": 1785.8
+    }
+  },
+  {
+    "tag": "blocking-queue",
+    "runs": 10,
+    "statistics": {
+      "A": 17.3,
+      "MА": 1636.8,
+      "D": 7.0,
+      "MG": 1621.0
+    }
+  },
+  {
+    "tag": "tasks",
+    "runs": 10,
+    "statistics": {
+      "A": 18.8,
+      "MА": 1628.8,
+      "D": 7.7,
+      "MG": 1622.8
+    }
+  }
+]

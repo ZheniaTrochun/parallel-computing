@@ -14,10 +14,9 @@ import java.util.function.Supplier;
 
 public class CalculationThreads {
     private final Data data;
-
     private ResultData resultData = new ResultData();
 
-    private volatile boolean isFinishedD = false;
+    private static final Object MONITOR = new Object();
 
     public CalculationThreads(Generator generator) {
         this.data = JsonUtils.readInputData()
@@ -27,7 +26,11 @@ public class CalculationThreads {
     public CalculationThreads() {
         Random rand = new Random();
         this.data = JsonUtils.readInputData()
-                .orElseGet(() -> createDataAndWrite(rand::nextDouble));
+                .orElseGet(() -> createDataAndWrite(new Generator(rand)));
+    }
+
+    public CalculationThreads(Data data) {
+        this.data = data;
     }
 
     private Data createDataAndWrite(Generator gen) {
@@ -37,12 +40,20 @@ public class CalculationThreads {
     }
 
     private Runnable createFirst() {
-        return fromSupplier(Profilers.profile("А = В*МС + D*MZ + E*MM",
+        return fromSupplier(Profilers.profile("A", // "А = В*МС + D*MZ + E*MM"
                 () -> {
                     Vector BMC = data.B.multiply(data.MC);
                     Vector EMM = data.E.multiply(data.MM);
                     Vector sum = BMC.add(EMM);
-                    waitForD();
+                    synchronized (MONITOR) {
+                        if (resultData.getD() == null) {
+                            try {
+                                MONITOR.wait();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
                     Vector DMZ = resultData.getD().multiply(data.MZ);
                     Vector A = DMZ.add(sum);
                     resultData.setA(A);
@@ -52,20 +63,22 @@ public class CalculationThreads {
     }
 
     private Runnable createSecond() {
-        return fromSupplier(Profilers.profile("D = В*МZ - E*MM*a",
+        return fromSupplier(Profilers.profile("D", // "D = В*МZ - E*MM*a"
                 () -> {
-                    Vector BMZ = data.B.multiply(data.MZ);
-                    Vector EMMA = data.E.multiply(data.MM).multiply(data.a);
-                    Vector D = BMZ.substruct(EMMA);
-                    resultData.setD(D);
-                    setFinishedD();
-                    return D;
+                    synchronized (MONITOR) {
+                        Vector BMZ = data.B.multiply(data.MZ);
+                        Vector EMMA = data.E.multiply(data.MM).multiply(data.a);
+                        Vector D = BMZ.substruct(EMMA);
+                        resultData.setD(D);
+                        MONITOR.notifyAll();
+                        return D;
+                    }
                 }
         ));
     }
 
     private Runnable createThird() {
-        return fromSupplier(Profilers.profile("MА = MD*(MT + MZ) - ME*MM",
+        return fromSupplier(Profilers.profile("MА", // "MА = MD*(MT + MZ) - ME*MM"
                 () -> {
                     Matrix MTMZ = data.MT.add(data.MZ);
                     Matrix MDMTMZ = data.MD.multiply(MTMZ);
@@ -78,11 +91,19 @@ public class CalculationThreads {
     }
 
     private Runnable createFourth() {
-        return fromSupplier(Profilers.profile("MG = min(D + C)*MD*MT - MZ*ME",
+        return fromSupplier(Profilers.profile("MG", // "MG = min(D + C)*MD*MT - MZ*ME"
                 () -> {
                     Matrix MZME = data.MZ.multiply(data.ME);
                     Matrix MDMT = data.MD.multiply(data.MT);
-                    waitForD();
+                    synchronized (MONITOR) {
+                        if (resultData.getD() == null) {
+                            try {
+                                MONITOR.wait();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
                     Vector DC = resultData.getD().add(data.C);
                     Matrix MDMTDC = MDMT.multiply(DC.min());
                     Matrix MG = MDMTDC.substruct(MZME);
@@ -94,18 +115,10 @@ public class CalculationThreads {
 
     public ThreadHolder start() {
         return new ThreadHolder(resultData)
-                .startFirst(createFirst())
-                .startSecond(createSecond())
-                .startThird(createThird())
-                .startFourth(createFourth());
-    }
-
-    private void setFinishedD() {
-        this.isFinishedD = true;
-    }
-
-    private void waitForD() {
-        while (!this.isFinishedD) {}
+                .start(createSecond())
+                .start(createFirst())
+                .start(createThird())
+                .start(createFourth());
     }
 
     private <T> Runnable fromSupplier(Supplier<T> supplier) {

@@ -1,5 +1,7 @@
 package com.yevhenii.kpi.parallel.computing.models;
 
+import com.yevhenii.kpi.parallel.computing.utils.Functions;
+
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -24,9 +26,11 @@ public class Matrix {
 
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
+                double[] multiplies = new double[size];
                 for (int k = 0; k < size; k++) {
-                    resultState[i][j] += state[i][k] * other.state[j][k];
+                    multiplies[k] = state[i][k] * other.state[j][k];
                 }
+                resultState[i][j] = Functions.kahanSummation(multiplies);
             }
         }
 

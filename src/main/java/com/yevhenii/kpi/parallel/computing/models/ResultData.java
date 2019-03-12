@@ -12,8 +12,8 @@ public class ResultData {
     }
 
     public ResultData(Vector D, Vector A, Matrix MA, Matrix MG) {
-        D = D;
-        A = A;
+        this.D = D;
+        this.A = A;
         this.MA = MA;
         this.MG = MG;
     }

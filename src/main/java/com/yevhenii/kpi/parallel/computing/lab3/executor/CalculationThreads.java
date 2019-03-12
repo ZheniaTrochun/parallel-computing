@@ -20,19 +20,23 @@ public class CalculationThreads {
 
     private ResultData resultData = new ResultData();
 
-    private static final CountDownLatch countDownLatch = new CountDownLatch(1);
-    private static final CountDownLatch resultCountDown = new CountDownLatch(4);
-    private static final Executor executor = Executors.newCachedThreadPool();
+    private final CountDownLatch countDownLatch = new CountDownLatch(1);
+    private final CountDownLatch resultCountDown = new CountDownLatch(4);
+    private final Executor executor = Executors.newCachedThreadPool();
 
     public CalculationThreads(Generator generator) {
         this.data = JsonUtils.readInputData()
                 .orElseGet(() -> createDataAndWrite(generator));
     }
 
+    public CalculationThreads(Data data) {
+        this.data = data;
+    }
+
     public CalculationThreads() {
         Random rand = new Random();
         this.data = JsonUtils.readInputData()
-                .orElseGet(() -> createDataAndWrite(rand::nextDouble));
+                .orElseGet(() -> createDataAndWrite(new Generator(rand)));
     }
 
     private Data createDataAndWrite(Generator gen) {
@@ -42,7 +46,7 @@ public class CalculationThreads {
     }
 
     private Runnable createFirst() {
-        return fromSupplier(Profilers.profile("А = В*МС + D*MZ + E*MM",
+        return fromSupplier(Profilers.profile("А", //"А = В*МС + D*MZ + E*MM",
                 () -> {
                     Vector BMC = data.B.multiply(data.MC);
                     Vector EMM = data.E.multiply(data.MM);
@@ -64,7 +68,7 @@ public class CalculationThreads {
     }
 
     private Runnable createSecond() {
-        return fromSupplier(Profilers.profile("D = В*МZ - E*MM*a",
+        return fromSupplier(Profilers.profile("D", // "D = В*МZ - E*MM*a",
                 () -> {
                     Vector BMZ = data.B.multiply(data.MZ);
                     Vector EMMA = data.E.multiply(data.MM).multiply(data.a);
@@ -78,7 +82,7 @@ public class CalculationThreads {
     }
 
     private Runnable createThird() {
-        return fromSupplier(Profilers.profile("MА = MD*(MT + MZ) - ME*MM",
+        return fromSupplier(Profilers.profile("MА", // "MА = MD*(MT + MZ) - ME*MM"
                 () -> {
                     Matrix MTMZ = data.MT.add(data.MZ);
                     Matrix MDMTMZ = data.MD.multiply(MTMZ);
@@ -92,7 +96,7 @@ public class CalculationThreads {
     }
 
     private Runnable createFourth() {
-        return fromSupplier(Profilers.profile("MG = min(D + C)*MD*MT - MZ*ME",
+        return fromSupplier(Profilers.profile("MG", // MG = min(D + C)*MD*MT - MZ*ME
                 () -> {
                     Matrix MZME = data.MZ.multiply(data.ME);
                     Matrix MDMT = data.MD.multiply(data.MT);

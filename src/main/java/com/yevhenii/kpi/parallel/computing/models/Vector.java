@@ -1,5 +1,7 @@
 package com.yevhenii.kpi.parallel.computing.models;
 
+import com.yevhenii.kpi.parallel.computing.utils.Functions;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -59,11 +61,11 @@ public class Vector {
         double[][] matrixState = matrix.getState();
 
         for (int i = 0; i < size; i++) {
-            double res = 0;
+            double[] multiplies = new double[size];
             for (int j = 0; j < size; j++) {
-                res += state[j] * matrixState[j][i];
+                multiplies[j] = state[j] * matrixState[j][i];
             }
-            resultState[i] = res;
+            resultState[i] = Functions.kahanSummation(multiplies);
         }
 
         return new Vector(resultState);

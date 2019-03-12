@@ -25,10 +25,14 @@ public class Calculations {
                 .orElseGet(() -> createDataAndWrite(generator));
     }
 
+    public Calculations(Data data) {
+        this.data = data;
+    }
+
     public Calculations() {
         Random rand = new Random();
         this.data = JsonUtils.readInputData()
-                .orElseGet(() -> createDataAndWrite(rand::nextDouble));
+                .orElseGet(() -> createDataAndWrite(new Generator(rand)));
     }
 
     private Data createDataAndWrite(Generator gen) {
@@ -39,7 +43,7 @@ public class Calculations {
 
     private CompletableFuture<Vector> first() {
         Supplier<Vector> res = Profilers.profile(
-                "А = В*МС + D*MZ + E*MM",
+                "A", // "А = В*МС + D*MZ + E*MM"
                 () -> {
                     Vector BMC = data.B.multiply(data.MC);
                     Vector EMM = data.E.multiply(data.MM);
@@ -59,7 +63,7 @@ public class Calculations {
 
     private CompletableFuture<Vector> second() {
         Supplier<Vector> res = Profilers.profile(
-                "D = В*МZ - E*MM*a",
+                "D", // "D = В*МZ - E*MM*a"
                 () -> {
                     Vector BMZ = data.B.multiply(data.MZ);
                     Vector EMMA = data.E.multiply(data.MM).multiply(data.a);
@@ -75,7 +79,7 @@ public class Calculations {
 
     private CompletableFuture<Matrix> third() {
         Supplier<Matrix> res = Profilers.profile(
-                "MА = MD*(MT + MZ) - ME*MM",
+                "MА", // "MА = MD*(MT + MZ) - ME*MM"
                 () -> {
                     Matrix MTMZ = data.MT.add(data.MZ);
                     Matrix MDMTMZ = data.MD.multiply(MTMZ);
@@ -89,7 +93,7 @@ public class Calculations {
 
     private CompletableFuture<Matrix> fourth() {
         Supplier<Matrix> res = Profilers.profile(
-                "MG = min(D + C)*MD*MT - MZ*ME",
+                "MG", // "MG = min(D + C)*MD*MT - MZ*ME"
                 () -> {
                     Matrix MZME = data.MZ.multiply(data.ME);
                     Matrix MDMT = data.MD.multiply(data.MT);

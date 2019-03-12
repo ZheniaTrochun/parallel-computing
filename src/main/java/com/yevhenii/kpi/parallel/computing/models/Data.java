@@ -5,7 +5,7 @@ import com.yevhenii.kpi.parallel.computing.utils.Generator;
 import java.util.Objects;
 
 public class Data {
-    private static final int SIZE = 1000;
+    private static final int SIZE = 500;
 
     public Vector B;
     public Vector C;
