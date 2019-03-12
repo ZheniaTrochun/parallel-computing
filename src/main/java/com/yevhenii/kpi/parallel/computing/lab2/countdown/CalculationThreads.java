@@ -109,11 +109,11 @@ public class CalculationThreads {
     }
 
     public ThreadHolder start() {
-        return new ThreadHolder(threads, resultData)
-                .startFirst(createFirst())
-                .startSecond(createSecond())
-                .startThird(createThird())
-                .startFourth(createFourth());
+        return new ThreadHolder(resultData)
+                .start(createFirst())
+                .start(createSecond())
+                .start(createThird())
+                .start(createFourth());
     }
 
     private <T> Runnable fromSupplier(Supplier<T> supplier) {

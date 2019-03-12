@@ -3,3 +3,4 @@ target/
 *.iml
 input.json
 output.json
+statistics.json
